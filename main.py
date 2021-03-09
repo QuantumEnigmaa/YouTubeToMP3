@@ -1,56 +1,153 @@
+from tkinter import ttk
 import ModTkinter as tk
 from pytube import YouTube
 
-"""
 # where to save
 SAVE_PATH = "E:/"  # to_do
 
-# Single video downloading
-link = input ("Copiez le lien de la musique")
-yt = YouTube(link)
 
-ym = yt.streams.get_audio_only()
-print("downloading...")
-ym.download("C:/Users/zirco/Downloads/")
-print("download completed")
+class tkinterApp(tk.Tk):
 
-# link of the video to be downloaded
-# opening the file
-link = open('links_file.txt', 'r')
+    # __init__ function for class tkinterApp
+    def __init__(self, *args, **kwargs):
+        # __init__ function for class Tk
+        tk.Tk.__init__(self, *args, **kwargs)
 
-for i in link:
-    try:
+        # creating a container
+        container = tk.Frame(self)
+        container.pack(side="top", fill="both", expand=True)
 
-        # object creation using YouTube
-        # which was imported in the beginning
-        yt = YouTube(i)
-    except:
+        container.grid_rowconfigure(0, weight=1)
+        container.grid_columnconfigure(0, weight=1)
 
-        # to handle exception
-        print("Connection Error")
+        # initializing frames to an empty array
+        self.frames = {}
 
-    # get the video with the extension and
-    # resolution passed in the get() function
-    d_video = yt.streams.get_audio_only()
-    try:
+        # iterating through a tuple consisting of the different page layouts
+        for F in (StartPage, Page1, Page2):
+            frame = F(container, self)
 
-        # downloading the video
-        d_video.download(SAVE_PATH)
-    except:
-        print("Some Error!")
-print('Task Completed!')
-"""
+            # initializing frame of that object from
+            # startpage, page1, page2 respectively with
+            # for loop
+            self.frames[F] = frame
 
-window = tk.Tk()
-greeting = tk.Label(text="Hello world !")
-greeting.pack()
+            frame.grid(row=0, column=0, sticky="nsew")
 
-oneLinkButton = tk.Button(
-    text=">",
-    width=25,
-    height=5,
-    bg="gray",
-    fg="white"
-).pack()
+        self.show_frame(StartPage)
 
-window.mainloop()
+    # to display the current frame passed as parameter
+    def show_frame(self, cont):
+        frame = self.frames[cont]
+        frame.tkraise()
+
+
+# first window frame startpage
+
+class StartPage(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+
+        # label of frame Layout 2
+        label = ttk.Label(self, text="Bienvenue dans le convertisseur de vidéos YouTube en fichier MP3 !")
+
+        # putting the grid in its place by using grid
+        label.grid(row=0, column=4, padx=10, pady=10)
+
+        button1 = ttk.Button(self, text="Une seule musique",
+                             command=lambda: controller.show_frame(Page1))
+
+        # putting the button in its place by using grid
+        button1.grid(row=1, column=4, padx=10, pady=10)
+
+        ## button to show frame 2 with text layout2
+        button2 = ttk.Button(self, text="Plusieurs musiques",
+                             command=lambda: controller.show_frame(Page2))
+
+        # putting the button in its place by using grid
+        button2.grid(row=2, column=4, padx=10, pady=10)
+
+
+# second window frame page1
+class Page1(tk.Frame):
+
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        label = ttk.Label(self, text="Un seul lien")
+        label.grid(row=0, column=4, padx=10, pady=10)
+
+        ask = ttk.Label(self, text="Veuillez entrer le lien de la vidéo YouTube")
+        ask.grid(row=1, column=4, padx=10, pady=10)
+
+        # get youtube link
+        entry = ttk.Entry()
+        entry.pack()
+        link = entry.get()
+
+        downloadButton = ttk.Button(self, text="Télécharger")
+        # command=self.downloadSingleLink(link))
+        downloadButton.grid(row=3, column=4, padx=10, pady=10)
+
+        returnButton = ttk.Button(self, text="Retour",
+                                  command=lambda: controller.show_frame(StartPage))
+        returnButton.grid(row=4, column=4, padx=10, pady=10)
+
+    def downloadSingleLink(self, l):
+        yt = YouTube(l)
+
+        ym = yt.streams.get_audio_only()
+        print("downloading...")
+        ym.download("C:/Users/zirco/Downloads/")
+        print("download completed")
+
+
+# third window frame page2
+class Page2(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        label = ttk.Label(self, text="Plusieurs liens")
+        label.grid(row=0, column=4, padx=10, pady=10)
+
+        ask = ttk.Label(self, text="Veuillez entrer le nom du fichier contenant les liens des vidéos à transformer",
+                        justify="center")
+        ask.grid(row=1, column=4, padx=10, pady=10)
+
+        # get youtube link
+        entry2 = ttk.Entry()
+        entry2.pack()
+        file = entry2.get()
+
+        downloadButton = ttk.Button(self, text="Télécharger")
+        # command=self.downloadMultipleLinks(file))
+        downloadButton.grid(row=3, column=4, padx=10, pady=10)
+
+        returnButton = ttk.Button(self, text="Retour",
+                                  command=lambda: controller.show_frame(StartPage))
+
+        returnButton.grid(row=4, column=4, padx=10, pady=10)
+
+    def downloadMultipleLinks(self, file):
+        global yt
+        link = open(file, 'r')
+
+        for i in link:
+            try:
+                yt = YouTube(i)
+            except:
+                # to handle exception
+                print("Connection Error")
+
+            # get the video with the extension and resolution passed in the get() function
+            d_video = yt.streams.get_audio_only()
+            try:
+                # downloading the video
+                d_video.download(SAVE_PATH)
+            except:
+                print("Some Error!")
+        print('Task Completed!')
+
+
+# Driver Code
+app = tkinterApp()
+app.title("YouTubeToMP3")
+app.mainloop()
